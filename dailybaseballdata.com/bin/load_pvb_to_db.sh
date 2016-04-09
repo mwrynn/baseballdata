@@ -1,7 +1,8 @@
 #!/bin/sh             
 
-csvdir=csv                                                                                                                                                                                    
+source ../conf/env.conf
+
 psql -h localhost <<EOF
 truncate table baseball.pvb;
-\copy baseball.pvb from '$csvdir/pvb.csv' CSV HEADER
+\copy baseball.pvb from '${CSV_DIR}/pvb.csv' CSV HEADER
 EOF

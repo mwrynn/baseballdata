@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ../conf/env.conf
+
 function is_final {
   grep "(final)" $1 > /dev/null
   if [ $? -eq 0 ]; then

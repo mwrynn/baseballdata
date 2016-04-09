@@ -1,7 +1,9 @@
 #!/bin/sh
 
+source ../conf/env.conf
+
 yr=$1
-dir=data/processed
+dir=${PROCESSED_DIR}
 
 psql <<EOF
 set search_path to retrosheet;
