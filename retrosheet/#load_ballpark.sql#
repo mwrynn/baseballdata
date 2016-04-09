@@ -1,1 +1,0 @@
-\copy ballpark from 'data/original/https://www.kickstarter.com/projects/mildlycompetent/seaworthyparkcode.txt' csv header
