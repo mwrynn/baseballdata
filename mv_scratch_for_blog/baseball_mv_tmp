@@ -1,0 +1,31 @@
+do $$
+declare
+  rec record;
+  result_seed int;
+begin 
+/*
+  insert into player (name, num, team)
+  select md5(random()::text), i, 'NYY' from generate_series(1,25) i;
+
+  insert into player (name, num, team)
+  select md5(random()::text), i, 'BOS' from generate_series(1,25) i;
+
+  insert into player (name, num, team)
+  select md5(random()::text), i, 'TOR' from generate_series(1,25) i;
+
+  insert into player (name, num, team)
+  select md5(random()::text), i, 'TBA' from generate_series(1,25) i;
+
+  insert into player (name, num, team)
+  select md5(random()::text), i, 'BAL' from generate_series(1,25) i;
+*/
+  for rec in (select id from player) loop
+    for i in 1 .. 180 loop
+      for j in 0 .. 2 loop
+        result_seed := (random()*2)::int;
+        insert into pa (player_id, gamedate, inning, result) values (rec.id, '20150401'::date + i, (3*(j+1))::int, case when result_seed=0 then 'H' else 'O' end);
+      end loop;
+    end loop;
+  end loop;
+end$$
+language plpgsql;

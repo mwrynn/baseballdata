@@ -1,0 +1,35 @@
+event codes and how to handle:
+# - a single digit indicates an out - for our purposes ignore the #'s value
+## - same as above, I think typically 2-3 but there may not be a theoretical limit
+##([# or B]) - treat same as above for our purposes
+##([# or B])## - ground into double play
+#(B)#(#) - lined into double play
+C - catcher or pitcher/1st baseman interference - no at bat counted?
+S# - single
+D# - double
+T# - triple
+DGR - ground rule double
+E# - error (no at-bat?)
+FC# - fielder's choice (counts as hit)
+FLE# - error on fly ball
+H or HR - home run
+H# or HR# - inside park home run
+HP - hit by pitch
+K - strikeout
+K+[...] - strikeout plus event
+NP - no play - a placeholder for when substitutions are made
+I or IW - intentional walk
+W - walk
+W+[...] pr IW+[...] - walk/intentional walk plus event
+
+there are more but these do not involve batter (e.g. BK is balk, CS# is caught stealing)
+
+pa_is_hit:
+true: S#, D#, T#, DGR, FC#, H, HR
+false: anything starting with a #, C, E#, FLE#, starts with K, starts with I, starts with W, HP
+null: everything else
+
+stats we want per batter:
+ALOH (At least one hit in game)	
+PA (plate apperances)
+HPA (hits per plate appearance)

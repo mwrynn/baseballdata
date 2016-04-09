@@ -1,0 +1,108 @@
+Types of files:
+
+*****
+
+1. Game:
+Original source file is event file. Example: 2013OAK.EVA
+awk script translates them into CSV/format we need
+This does NOT use the game files GLyyyy.TXT
+Table is called game
+
+SOURCE
+id,[...]   ####start of record
+[...]
+info,visteam,BOS
+info,hometeam,NYA
+info,site,NYC21
+info,date,2013/04/01
+info,number,0
+[...]
+data,[...]
+[...]
+start,[...]
+[...]
+id,[...]    ####start of next record
+[REPEAT]
+
+DEST
+2013-04-01,0,NYA,BOS,NYC21
+[REPEAT]
+
+To translate one file, run awk script:
+gawk -f games.awk data/original/event/2011NYA.EVA >> data/processed/games2011.csv
+
+To create games file for whole year:
+for file in $(ls data/original/event/2011*); do gawk -f games.awk ${file} >> data/processed/games2011.csv; done
+
+To create single games file for all years:
+for file in $(ls data/original/event/*); do gawk -f games.awk ${file} >> data/processed/games.csv; done
+
+To load into db:
+\copy game from 'data/processed/games.csv' csv
+load_games_plays_roster.sh
+
+*****
+
+2. Ballpark:
+use parkcode.txt - no transformations needed 
+run this in psql:
+\copy ballpark from 'data/original/parkcode.txt' csv header
+
+...which is in this script:
+load_ballpark.sql 
+
+*****
+
+3. Gamelog
+
+info about, and can be downloaded from: http://www.retrosheet.org/gamelogs/index.html
+
+don't seem to have any scripts to load it - just a create table ddl. not sure if needed.
+
+*****
+
+4. Person
+
+can find here, looks like it needs to be copy/pasted: http://www.retrosheet.org/retroID.htm - could maybe automate by stripping unwanted tags
+\copy person from 'data/original/person.txt' csv header
+...which is in load_person.sql
+
+*****
+
+5. Plays
+
+plays.awk takes event file (EVN or EVA?) and outputs individual plays.
+Can execute plays.awk for all events for a year like so: ./make_plays.sh 2014
+
+\copy play from '$2' csv
+load_games_plays_roster.sh
+
+SOURCE
+id,[...]
+[...]
+info,date,2013/04/01
+info,number,0
+info,visteam,BOS #set visteam var
+info,hometeam,NYA #set hometeam var
+[...]
+start,[player id],[...],[visiting/home (0/1)],[...],[position (we want 1 which is pitcher)] #set pitcher var to player id here
+[...]
+play,[inning],[visiting/home (0/1)],[player ID],[...],[...],[A-Z0-9 (result)]/[...]
+[...]
+sub,[player id==pitcher var],[...] #set pitcher var to this in order
+
+DEST
+hometeam,visteam,2013-04-01,0,inning,player ID (batter), player ID (pitcher),result
+
+*****
+
+6. Roster
+
+Roster (ROS) files come packaged with event zips
+roster.awk simply prepends a year so that all the years' rosters can be loaded into a single table
+
+\copy roster from '$3' csv
+load_games_plays_roster.sh
+
+*****
+

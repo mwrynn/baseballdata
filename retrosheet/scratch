@@ -1,0 +1,58 @@
+select batter, total_hits, total_pa, case when total_hits is null then null else (total_hits::float/total_pa::float) end as hpa, hit_in_game from
+(
+  select distinct on (pa_is_hit) batter, sum(pa_is_hit) as total_hits,  sum(case when pa_is_hit is not null then 1 else 0 end) as total_pa, sum(hit_in_game)::float as sum_aloh_games, sum(case when play_num=1 then 1 else 0 end)::float as num_games from 
+    (select batter, gamedate, gamenum, pa_is_hit, max(pa_is_hit) over (partition by batter, gamedate, gamenum) as hit_in_game from play_h_v) sub
+  group by batter
+) sub
+where total_pa > 100
+order by hpa desc;
+
+---
+
+drop view batter_agg_v cascade;
+drop materialized view batter_agg_mv;
+
+/* per batter+game, gets whether player got a hit, the number of hits, and the number of plate appearances */
+create or replace view batter_game as
+  select distinct on (batter, gamedate, gamenum) extract (year from gamedate) as yr, batter, gamedate, gamenum, hit_in_game, sum(pa_is_hit) num_hits, count(pa_is_hit) num_pa 
+  from
+    (select batter, gamedate, gamenum, pa_is_hit, max(pa_is_hit) over (partition by batter, gamedate, gamenum) as hit_in_game from play_h_v) sub
+  group by batter, gamedate, gamenum, hit_in_game
+  order by batter, gamedate, gamenum, hit_in_game
+;
+
+create or replace view batter_agg_v as
+/* roll the batter_game data up to get us hpa, aloh */
+select batter, yr, sum(num_hits)::float/sum(num_pa)::float as hpa, sum(hit_in_game)::float/count(*)::float as aloh, count(*) as num_games, sum(num_pa) total_pa
+from batter_game
+group by batter, yr
+order by hpa desc, aloh desc, batter, yr
+;
+
+create materialized view batter_agg_mv as select * from batter_agg_v;
+
+/* 1. add in year, and a rollup 
+   2. pitcher faced handedness and rollup
+
+   NOPE: No rollup yet in postgres
+   IDEA: How to fake rollup by year - can we use a windowing function? maybe something like sum(num_pa) over (partition by batter) ?
+   NOPE: column "batter_game.num_pa" must appear in the GROUP BY clause or be used in an aggregate function
+   NEXT IDEA: final query has to select it union the view but also figure out the overall aggregates disregarding year
+     YES:  may work but ugly. so far got it working with total_pa_rollup
+*/
+
+select a.*, b.total_pa_rollup from 
+  (select * from batter_agg_mv where total_pa > 100) a,
+  (select batter, sum(total_pa) total_pa_rollup from batter_agg_mv where total_pa > 100 group by batter) b 
+where a.batter=b.batter
+order by yr desc, aloh desc, hpa desc, batter
+;
+
+/*
+  let's get handedness of batter vs. pitcher 
+  1. need to load roster data - done
+  2. can join against roster to get pitcher's "throws" and batter's "bats" (handedness). a padj record means pitcher pitching with opposite hand but this only happened once in 1995 so ignore. However badj can happen when either A) a switch hitter ("B") does not bat the expected way (opposite pitcher's handedness) or B) non-switch hitter bats opposite his normal handedness (it happens enough)
+  3. stadium
+*/
+
+

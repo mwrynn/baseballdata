@@ -1,0 +1,3 @@
+sed '/script/,$d;/^$/d' | awk -f test.awk -v theyear=$(date +%Y) | awk -f test.awk
+
+

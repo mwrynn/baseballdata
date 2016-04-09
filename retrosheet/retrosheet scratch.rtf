@@ -1,0 +1,34 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf190
+{\fonttbl\f0\fmodern\fcharset0 CourierNewPSMT;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww21560\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 Filename: 83NYA.EVA (YEARTEAM.EV[A|N])\
+\
+CSV with these records:\
+\
+12charID\
+ver\
+info records: up to 30, e.g. temp, attendance, umps\
+starting lineups: (18 or 20 recs for NL/AL, each 5 fields: retrosheet ID, player\'92s name, 0(visit)/1(home), batting order, fielding position)\
+play: events of the game: inning, 0 (vis)/1 (home), retrosheet ID, count on batter, variable len field containing all pitches to the batter, play which occurred\
+\
+so, let\'92s parse this to get:\
+\
+each at-bat: game date, game number, inning, who is at bat, who is pitching, and the result\
+\
+how to find?\
+\
+record id: id,NYA201204130\
+	begins the set of records for a game, tells us team NYA played on 2012-04-13 and the game number is 0\
+record play: play,2,1,granc001,22,BBSSS,K23\
+	inning: first field (after \'93play\'94)\
+     player: 3rd field (retrosheet ID)\
+	result: sixth field, a bit complex, first \'93portion\'94 is the result for example, 8 is fly ball to center (out), S for single, D for double, I guess K is strikeout + a number. we prob don\'92t need the number. can ignore rest of this field, SB# is stolen base?, W is\'85?, NP is \'85?, HR is home run\
+\
+Probably the easiest way to find the end of the game is to find the next id record\
+\
+so we want to do something like:\
+team1,team2,gamedate,gamenum,inning,player,result (just the S/D/T/K/etc.)\
+}

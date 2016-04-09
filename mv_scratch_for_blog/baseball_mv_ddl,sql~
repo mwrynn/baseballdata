@@ -1,0 +1,4 @@
+CREATE TABLE player (id SERIAL PRIMARY KEY, name VARCHAR, num SMALLINT, team VARCHAR(3));
+CREATE TABLE pa (player_id INT REFERENCES player(id), gamedate DATE, inning SMALLINT, result VARCHAR(1));
+
+
