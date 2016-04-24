@@ -1,1 +1,0 @@
-\copy person from 'data/original/person.txt' csv header
